@@ -20,6 +20,5 @@ public class Game {
         this.whitesTurn = whitesTurn;
     }
     public boolean getWhitesTurn(){return whitesTurn; }
-    Board board;
 }
 

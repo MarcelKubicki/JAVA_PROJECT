@@ -20,7 +20,7 @@ public class Board {
                     if (j < 3) {
                         blackFields[i][j] = new Field(i, j, Field.State.blackPiece);
                     } else if (j > 4) {
-                        blackFields[i][j] = new Field(i, j, Field.State.whitePiece);
+                        blackFields[i][j] = new Field(i, j, Field.State.whiteKing);
                     } else{
                         blackFields[i][j] = new Field(i, j, Field.State.empty);
                     }
@@ -109,9 +109,6 @@ public class Board {
     }
     public void addMarkedFields(Field field){
         markedFields.add(field);
-    }
-    public void pieceIntoKing(Field.State king){
-        foundField(clickedX, clickedY).setStateField(king);
     }
     public Field getClickedField(){
         return foundField(clickedX, clickedY);

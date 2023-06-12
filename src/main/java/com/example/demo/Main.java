@@ -1,21 +1,29 @@
 package com.example.demo;
 
+
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+
 
 
 public class Main extends Application {
+    Stage primaryStage = new Stage();
     Game game = new Game();
     Board board = new Board();
     Capture capture = new Capture();
     HBox gameBoard = new HBox();
+    boolean isSelected;
 
     public static void main(String[] args) {
         launch();
@@ -23,30 +31,95 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+        menu();
+
+    }
+
+    private void menu(){
+        VBox vbox = new VBox();
+        vbox.setAlignment(Pos.CENTER);
+        vbox.setSpacing(10);
+        vbox.setPadding(new Insets(20));
+
+        // Add button "Play"
+        Button playButton = new Button("Play");
+        playButton.setPrefSize(150, 50);
+        vbox.getChildren().add(playButton);
+
+        // Add button "Online"
+        Button onlineButton = new Button("Online");
+        onlineButton.setPrefSize(125, 50);
+
+        // Add checbox
+        CheckBox onlineCheckBox = new CheckBox("");
+        onlineCheckBox.setDisable(true);
+
+        HBox buttonBox = new HBox(10);
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.getChildren().addAll(onlineButton, onlineCheckBox);
+
+        vbox.getChildren().add(buttonBox);
+
+        // Add button "Quit"
+        Button quitButton = new Button("Quit");
+        quitButton.setPrefSize(150, 50);
+        vbox.getChildren().add(quitButton);
+
+        // Tworzenie kontenera StackPane i dodawanie VBox oraz obrazka w tle
         StackPane stackPane = new StackPane();
-        Button start = new Button("START");
-        stackPane.getChildren().add(start);
+        stackPane.getChildren().add(vbox);
 
-        start.setOnAction(event -> {
-            gameBoard.setStyle("-fx-background-color:rgb(0, 0, 0);");
-            gameBoard.setPadding(new Insets(30, 30, 0, 30));
-
-            board.init();
-            generateBoardLayout(); // Generowanie planszy
-            drawPieces(); // Rysowanie pionków na planszy
-
-            Scene game = new Scene(gameBoard, 720, 540);
-            primaryStage.setScene(game);
-            primaryStage.centerOnScreen();
-
+        playButton.setOnAction(event -> {
+            Scene scene = gameBoard.getScene();
+            if(scene != null) {
+                gameBoard.getChildren().clear();
+                AnchorPane emptyRoot = new AnchorPane();
+                scene.setRoot(emptyRoot);
+            }
+            gameWindow();
         });
+
+        onlineButton.setOnAction(event -> {
+            isSelected = !isSelected;
+            onlineCheckBox.setSelected(isSelected);
+        });
+
+        quitButton.setOnAction(event -> primaryStage.close());
 
         Scene menu = new Scene(stackPane, 350, 350);
 
+        BackgroundImage backgroundImage = new BackgroundImage(
+                new Image("background.png", 350, 350, false, true),
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.DEFAULT,
+                BackgroundSize.DEFAULT
+        );
+        Background background = new Background(backgroundImage);
+        vbox.setBackground(background);
+
         primaryStage.setScene(menu);
-        primaryStage.setTitle("Warcaby");
+        primaryStage.setTitle("Menu");
         primaryStage.show();
     }
+
+    private void gameWindow(){
+        gameBoard.setStyle("-fx-background-color:rgb(0, 0, 0);");
+        gameBoard.setPadding(new Insets(30, 30, 0, 30));
+
+        game.init();
+        capture.init();
+        board.init();
+        generateBoardLayout(); // generating gameboard
+        drawPieces(); // drawing pieces on gameboard
+
+        Scene wGame = new Scene(gameBoard, 720, 540);
+        primaryStage.setScene(wGame);
+        primaryStage.centerOnScreen();
+    }
+
+    /* LOGIKA GRY */
 
     //Draw empty board
     private void generateBoardLayout() {
@@ -55,9 +128,6 @@ public class Main extends Application {
             for (int j = 0; j < 8; j++) {
                 if ((i + j) % 2 == 0) {
                     Rectangle whiteField = new Rectangle(60, 60, Color.WHITE);
-                    /*StackPane stackPane = new StackPane();
-                    stackPane.getChildren().add(whiteField);
-                    stackPane.setUserData(new int[]{i, j});*/
                     row.getChildren().add(whiteField);
                 } else {
                     Rectangle blackField = new Rectangle(57, 57, Color.GRAY);
@@ -78,10 +148,8 @@ public class Main extends Application {
     //Draw Pieces
     private void drawPieces() {
         for (int i = 0; i < 8; i++) {
-            //VBox row = (VBox) gameBoard.getChildren().get(i);
             for (int j = 0; j < 8; j++) {
                 Field gameField = board.foundField(i, j);
-                //StackPane stackPane = (StackPane) row.getChildren().get(j);
                 switch (gameField.state) {
                     case whitePiece -> drawPiece(i, j, Color.WHITE, Color.BLACK);
                     case blackPiece -> drawPiece(i, j, Color.BLACK, Color.WHITE);
@@ -102,12 +170,11 @@ public class Main extends Application {
             board.setClickedX(indexes[0]);
             board.setClickedY(indexes[1]);
 
+
             System.out.println(board.getClickedX() + " " + board.getClickedY());//
             System.out.println(board.foundField(board.getClickedX(), board.getClickedY()).getState());//
 
-            //do poprawki
-            if (board.foundField(board.getClickedX(), board.getClickedY()).getState() == Field.State.empty || board.foundField(board.getClickedX(), board.getClickedY()).getState() == Field.State.whiteField) {
-            ;
+            if (board.getClickedField().getState() == Field.State.empty  || board.foundField(board.getClickedX(), board.getClickedY()).getState() == Field.State.whiteField) {
             }
             else {
                 selectField();
@@ -136,11 +203,12 @@ public class Main extends Application {
             }
         }
 
-        if (board.foundField(board.getClickedX(), board.getClickedY()).state == Field.State.blackPiece && !game.getWhitesTurn()) {
-            PieceClicked(Field.State.blackPiece, Field.State.blackKing, Field.State.whitePiece , Field.State.whiteKing, 1);
-        }
-        else if(board.foundField(board.getClickedX(), board.getClickedY()).state == Field.State.blackKing){
-            KingClicked(Field.State.whitePiece , Field.State.whiteKing, Field.State.blackPiece, Field.State.blackKing);
+        if(!game.getWhitesTurn()) {
+            if (board.foundField(board.getClickedX(), board.getClickedY()).state == Field.State.blackPiece && !game.getWhitesTurn()) {
+                PieceClicked(Field.State.blackPiece, Field.State.blackKing, Field.State.whitePiece, Field.State.whiteKing, 1);
+            } else if (board.foundField(board.getClickedX(), board.getClickedY()).state == Field.State.blackKing) {
+                KingClicked(Field.State.blackPiece, Field.State.blackKing, Field.State.whitePiece, Field.State.whiteKing);
+            }
         }
     }
 
@@ -150,13 +218,10 @@ public class Main extends Application {
         board.getSelectedField().getRectangle().setStroke(Color.YELLOW);
         System.out.println("Położenie pionka: [" + board.getSelectedField().getX() + ", " + board.getSelectedField().getY() + "]");//
 
-        capture.setCapturingPiece(board, alliedPiece, enemyPiece, enemyKing);
-
         if(!capture.isCaptureMove()) {
             game.setCapture(true);
             if(capture.isPieceWithCapture(board.foundField(board.getClickedX(), board.getClickedY()))) {
-                possibleCapturePieceMoves(capture);
-               // capture.setCapturingPiece(board, alliedPiece, enemyPiece, enemyKing);
+                possibleCapturePieceMoves();
             }
             else{
                 board.clearMarked();
@@ -173,12 +238,10 @@ public class Main extends Application {
 
         System.out.println("Położenie damki: [" + board.getSelectedField().getX() + ", " + board.getSelectedField().getY() + "]");//
 
-        capture.setCapturingKing(board, alliedKing, enemyPiece, enemyKing);
-
         if(!capture.isCaptureMove()) {
             game.setCapture(true);
             if(capture.isPieceWithCapture(board.foundField(board.getClickedX(), board.getClickedY()))) {
-                possibleCaptureKingMoves(capture, enemyPiece, enemyKing);
+                possibleCaptureKingMoves(enemyPiece, enemyKing);
             }
             else{
                 board.clearMarked();
@@ -207,43 +270,46 @@ public class Main extends Application {
         }
     }
     private void possibleKingMoves(int x, int y) {
-        for (int i = 0; i < 8; i++) {
+        boolean leftTop = true, rightTop = true, leftBot = true, rightBot = true;
+
+        for (int i = 1; i < 8; i++) {
             // top left
-            if ((x - i) >= 0 && (y - i) >= 0) {
+            if ((x - i) >= 0 && (y - i) >= 0 && leftTop) {
                 Field field = board.foundField(x - i, y - i);
                 if (field.getState() == Field.State.empty) {
                     board.setMarkedField(field);
-                }
+                } else leftTop = false;
+
             }
 
             // top right
-            if ((x + i) < 8 && (y - i) >= 0) {
+            if ((x + i) < 8 && (y - i) >= 0 && rightTop) {
                 Field field = board.foundField(x + i, y - i);
                 if (field.getState() == Field.State.empty) {
                     board.setMarkedField(field);
-                }
+                } else rightTop = false;
             }
 
             // bot left
-            if ((x - i) >= 0 && (y + i) < 8) {
+            if ((x - i) >= 0 && (y + i) < 8 && leftBot) {
                 Field field = board.foundField(x - i, y + i);
                 if (field.getState() == Field.State.empty) {
                     board.setMarkedField(field);
-                }
+                } else leftBot = false;
             }
 
             // bot right
-            if ((x + i) < 8 && (y + i) < 8) {
+            if ((x + i) < 8 && (y + i) < 8 && rightBot) {
                 Field field = board.foundField(x + i, y + i);
                 if (field.getState() == Field.State.empty) {
                     board.setMarkedField(field);
-                }
+                } else rightBot = false;
             }
         }
         board.drawMarkedFields();
     }
 
-    private void possibleCapturePieceMoves(Capture capture) {
+    private void possibleCapturePieceMoves() {
         int x, y;
         x = board.getSelectedField().getX();
         y = board.getSelectedField().getY();
@@ -275,12 +341,10 @@ public class Main extends Application {
         board.drawMarkedFields();
     }
 
-    private void possibleCaptureKingMoves(Capture capture, Field.State piece, Field.State king){
-        int x, y;
+    private void possibleCaptureKingMoves(Field.State piece, Field.State king){
         int j = 0;
-        Field capturingPiece1, capturingPiece2, capturingPiece3, capturingPiece4;
-        x = board.getSelectedField().getX();
-        y = board.getSelectedField().getY();
+        int x = board.getSelectedField().getX();
+        int y = board.getSelectedField().getY();
 
         for(int i = 0; i < 8; i++){
 
@@ -405,22 +469,47 @@ public class Main extends Application {
                     pieceIntoKing(Field.State.whiteKing, Color.WHITE, Color.BLACK);
                 else
                     drawMovePiece(board.getSelectedField().getX(), board.getSelectedField().getY(), x, y, Color.WHITE, Color.BLACK);
-            }
-            else if(board.getSelectedField().getState() == Field.State.whiteKing){
+            } else if(board.getSelectedField().getState() == Field.State.whiteKing){
                 drawMoveKing(board.getSelectedField().getX(), board.getSelectedField().getY(), x, y, Color.WHITE, Color.BLACK);
             }
             if(game.isCapture()){
                 if(board.getClickedField().getState() == Field.State.whitePiece) {
                     removePieceCapturing();
-                }
-                else if (board.getClickedField().getState() == Field.State.whiteKing) {
+                } else if (board.getClickedField().getState() == Field.State.whiteKing) {
                     removePieceCapturingKing();
                 }
 
-                game.setCapture(false);
+                capture.clearCapture();
+                capture.setCapturingPiece(board, Field.State.whitePiece, Field.State.blackPiece, Field.State.blackKing);
+                capture.setCapturingKing(board, Field.State.whitePiece, Field.State.whiteKing, Field.State.blackPiece, Field.State.blackKing);
+
+                if(capture.isPieceWithCapture(board.getClickedField())){
+                    board.clearSelected();
+                    board.clearStoke(board.getClickedField().getRectangle());
+                    return;
+                }else{
+                    game.setCapture(false);
+                }
+
+
             }
             game.setWhitesTurn(false);
-           // capture.setCapturingPieces();
+
+            capture.clearCapture();
+
+            capture.setCapturingKing(board, Field.State.blackPiece, Field.State.blackKing, Field.State.whitePiece, Field.State.whiteKing);
+
+            if(capture.isCaptureMove())
+                capture.setCapturingPiece(board, Field.State.blackPiece, Field.State.whitePiece, Field.State.whiteKing);
+
+
+            //check possible white wins
+            if(capture.isCaptureMove() && !isMove(Field.State.blackPiece, Field.State.blackKing, 1))
+                game.setWhiteWins(true);
+
+
+            if(game.isWhiteWins())
+                afterWin("BIAŁE WYGRYWAJĄ!!!");
         }
 
         //black's movie
@@ -435,26 +524,44 @@ public class Main extends Application {
                 drawMoveKing(board.getSelectedField().getX(), board.getSelectedField().getY(), x, y, Color.BLACK, Color.WHITE);
             }
 
-            if(game.isCapture()){
-                if(board.getClickedField().getState() == Field.State.blackPiece) {
+            if(game.isCapture()) {
+                if (board.getClickedField().getState() == Field.State.blackPiece) {
                     removePieceCapturing();
-                }
-                else if (board.getClickedField().getState() == Field.State.blackKing) {
+                } else if (board.getClickedField().getState() == Field.State.blackKing) {
                     removePieceCapturingKing();
                 }
 
-                game.setCapture(false);
+                capture.clearCapture();
+                capture.setCapturingPiece(board, Field.State.blackPiece, Field.State.whitePiece, Field.State.whiteKing);
+                capture.setCapturingKing(board, Field.State.blackPiece, Field.State.blackKing, Field.State.whitePiece, Field.State.whiteKing);
+
+                if (capture.isPieceWithCapture(board.getClickedField())) {
+                    board.clearSelected();
+                    board.clearStoke(board.getClickedField().getRectangle());
+                    return;
+                } else {
+                    game.setCapture(false);
+                }
             }
             game.setWhitesTurn(true);
+
+            capture.clearCapture();
+
+            capture.setCapturingKing(board, Field.State.whitePiece, Field.State.whiteKing, Field.State.blackPiece, Field.State.blackKing);
+
+            if(capture.isCaptureMove())
+                capture.setCapturingPiece(board, Field.State.whitePiece, Field.State.blackPiece, Field.State.blackKing);
+
+            if(capture.isCaptureMove() && !isMove(Field.State.whitePiece, Field.State.whiteKing, -1))
+                game.setBlackWins(true);
+
+            if(game.isBlackWins())
+                afterWin("CZARNE WYGRYWAJĄ!!!");
         }
+
         board.clearMarked();
         board.clearSelected();
-
-
-        //sprawdzania czy istenieje kolejne bicie
-        //board.getClickedField()
     }
-
 
     private void drawMovePiece(int fromX, int fromY, int toX, int toY, Color color1, Color color2) {
         board.exchangeStates(board.getSelectedField(), board.getClickedField());
@@ -506,6 +613,87 @@ public class Main extends Application {
         stackPane.getChildren().add(2, king);
     }
 
+    private boolean isMove(Field.State piece, Field.State king, int move) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (board.foundField(i, j).getState() == piece || board.foundField(i, j).getState() == king) {
+                    if (isValidMove(i, j, i - 1, j + move)) {
+                        return true;
+                    }
+                    if (isValidMove(i, j, i + 1, j + move)) {
+                        return true;
+                    }
+                    if (board.foundField(i, j).getState() == king) {
+                        if (isValidMove(i, j, i - 1, j - move)) {
+                            return true;
+                        }
+                        if (isValidMove(i, j, i + 1, j - move)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isValidMove(int startX, int startY, int endX, int endY) {
+        if (endX < 0 || endX >= 8 || endY < 0 || endY >= 8) {
+            return false; // Sprawdzenie, czy docelowe pole mieści się w planszy
+        }
+
+        Field startField = board.foundField(startX, startY);
+        Field endField = board.foundField(endX, endY);
+
+        if (endField.getState() == Field.State.empty) {
+            int deltaX = Math.abs(startX - endX);
+            int deltaY = Math.abs(startY - endY);
+
+            if (deltaX == 1 && deltaY == 1) {
+                return true; // Dozwolony ruch o jedno pole na ukos
+            }
+        }
+        return false;
+    }
+
+
+    private void afterWin(String string){
+        Stage infoStage = new Stage();
+        infoStage.initOwner(primaryStage);
+        infoStage.initModality(Modality.APPLICATION_MODAL);
+        infoStage.initStyle(StageStyle.UNDECORATED);
+
+        VBox vbox = new VBox();
+        vbox.setAlignment(Pos.CENTER);
+        vbox.setSpacing(10);
+
+        Label infoLabel = new Label(string);
+        infoLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        vbox.getChildren().add(infoLabel);
+
+        Button menuButton = new Button("Return to menu");
+        vbox.getChildren().add(menuButton);
+
+        menuButton.setOnAction(event -> {
+            infoStage.close();
+            primaryStage.close();
+            menu();
+        });
+
+        BackgroundImage backgroundImage = new BackgroundImage(
+                new Image("win.png", 400, 250, false, true),
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.DEFAULT,
+                BackgroundSize.DEFAULT
+        );
+        Background background = new Background(backgroundImage);
+        vbox.setBackground(background);
+
+        Scene infoScene = new Scene(vbox, 400, 250);
+        infoStage.setScene(infoScene);
+        infoStage.show();
+    }
     private Rectangle getRectangle1(int x, int y) {
         VBox row = (VBox) gameBoard.getChildren().get(x);
         StackPane stackPane = (StackPane) row.getChildren().get(y);

@@ -4,9 +4,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class Game {
-    private boolean whitesTurn = true;
-    private boolean isCapture = false;
-    private boolean victory = false;
+    private boolean whitesTurn;
+    private boolean isCapture;
+    private boolean whiteWins;
+    private boolean blackWins;
 
     public boolean isCapture() {
         return isCapture;
@@ -20,5 +21,27 @@ public class Game {
         this.whitesTurn = whitesTurn;
     }
     public boolean getWhitesTurn(){return whitesTurn; }
+
+    public boolean isWhiteWins() {
+        return whiteWins;
+    }
+
+    public void setWhiteWins(boolean whiteWins) {
+        this.whiteWins = whiteWins;
+    }
+
+    public boolean isBlackWins() {
+        return blackWins;
+    }
+
+    public void setBlackWins(boolean blackWins) {
+        this.blackWins = blackWins;
+    }
+    public void init(){
+        whitesTurn = true;
+        isCapture = false;
+        whiteWins = false;
+        blackWins = false;
+    }
 }
 

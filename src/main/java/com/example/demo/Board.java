@@ -18,7 +18,7 @@ public class Board {
             for (int j = 0; j < 8; j++) { //wiersze
                 if ((i % 2 == 0 && j % 2 == 1) || (i % 2 == 1 && j % 2 == 0)) {
                     if (j < 3) {
-                        blackFields[i][j] = new Field(i, j, Field.State.blackPiece);
+                        blackFields[i][j] = new Field(i, j, Field.State.blackKing);
                     } else if (j > 4) {
                         blackFields[i][j] = new Field(i, j, Field.State.whiteKing);
                     } else{
@@ -107,6 +107,7 @@ public class Board {
         }
         return false;
     }
+
     public void addMarkedFields(Field field){
         markedFields.add(field);
     }

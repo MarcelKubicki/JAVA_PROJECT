@@ -11,8 +11,13 @@ public class Capture {
 
     }
 
-    public Capture(int i) {
-
+    public void init(){
+        if(!possibleCaptureMoves.isEmpty())
+            possibleCaptureMoves.clear();
+        if(!piecesWithCapture.isEmpty())
+            piecesWithCapture.clear();
+        if(!capturingPieces.isEmpty())
+            capturingPieces.clear();
     }
 
     public ArrayList<Field> getCapturingPieces() {
@@ -21,6 +26,10 @@ public class Capture {
 
     public void setCapturingPieces(ArrayList<Field> capturingPieces) {
         this.capturingPieces = capturingPieces;
+    }
+    public void clearCapture(){
+        possibleCaptureMoves.clear();
+        piecesWithCapture.clear();
     }
 
     public ArrayList<Field> getPossibleCaptureMoves() {
@@ -109,56 +118,69 @@ public class Capture {
         }
     }
 
-    public void setCapturingKing(Board board, Field.State capturingKing, Field.State piece, Field.State king){
+    public void setCapturingKing(Board board, Field.State alliedPiece, Field.State capturingKing, Field.State piece, Field.State king){
         boolean kingWithCapture = false;
-        int l = 0;
+        boolean leftTop, rightTop, leftBot, rightBot;
 
         for (int i = 0; i < 8; i++) { //kolumny
             for (int j = 0; j < 8; j++) { //wiersze
                 if (board.foundField(i, j).getState() == capturingKing) {
-                    for(int k = 0; k < 8; k++) {
+                    leftTop = true;
+                    rightTop = true;
+                    leftBot = true;
+                    rightBot = true;
+
+                    for(int k = 1; k < 8; k++) {
 
                         //top left
-                        if (i - (k+1) >= 0 && j - (k+1) >= 0) {
-                            if ((board.foundField(i - k, j - k).getState() == piece) || (board.foundField(i - 1, j - 1).getState() == king)) {
+                        if (i - (k+1) >= 0 && j - (k+1) >= 0 && leftTop) {
+                            if ((board.foundField(i - k, j - k).getState() == piece) || (board.foundField(i - k, j - k).getState() == king)) {
                                 if (board.foundField(i - (k+1), j - (k+1)).getState() == Field.State.empty) {
                                     capturingPieces.add(board.foundField(i - k, j - k));
                                     possibleCaptureMoves.add(board.foundField(i - (k + 1), j - (k + 1)));
                                     kingWithCapture = true;
                                 }
+                            } else if(board.foundField(i - k, j - k).getState() == alliedPiece || board.foundField(i - k, j - k).getState() == capturingKing){
+                                leftTop = false;
                             }
                         }
 
                         //top right
-                        if (i - (k+1) >= 0 && j + (k+1) < 8) {
-                            if ((board.foundField(i - k, j + k).getState() == piece) || (board.foundField(i - 1, j + 1).getState() == king)) {
+                        if (i - (k+1) >= 0 && j + (k+1) < 8 && rightTop) {
+                            if ((board.foundField(i - k, j + k).getState() == piece) || (board.foundField(i - k, j + k).getState() == king)) {
                                 if (board.foundField(i - (k+1), j + (k+1)).getState() == Field.State.empty) {
                                     capturingPieces.add(board.foundField(i - k, j + k));
                                     possibleCaptureMoves.add(board.foundField(i - (k+1), j + (k+1)));
                                     kingWithCapture = true;
                                 }
+                            }else if(board.foundField(i - k, j + k).getState() == alliedPiece || board.foundField(i - k, j + k).getState() == capturingKing){
+                                rightTop = false;
                             }
                         }
 
                         //bot left
-                        if (i + (k+1) < 8 && j - (k+1) >= 0) {
-                            if ((board.foundField(i + k, j - k).getState() == piece) || (board.foundField(i + 1, j - 1).getState() == king)) {
+                        if (i + (k+1) < 8 && j - (k+1) >= 0 && leftBot) {
+                            if ((board.foundField(i + k, j - k).getState() == piece) || (board.foundField(i + k, j - k).getState() == king)) {
                                 if (board.foundField(i + (k+1), j - (k+1)).getState() == Field.State.empty) {
                                     capturingPieces.add(board.foundField(i + k, j - k));
                                     possibleCaptureMoves.add(board.foundField(i + (k+1), j - (k+1)));
                                     kingWithCapture = true;
                                 }
+                            } else if(board.foundField(i + k, j - k).getState() == alliedPiece || board.foundField(i + k, j - k).getState() == capturingKing){
+                                leftBot = false;
                             }
                         }
 
                         //bot right
-                        if (i + (k+1) < 8 && j + (k+1) < 8) {
-                            if ((board.foundField(i + k, j + k).getState() == piece) || (board.foundField(i + 1, j + 1).getState() == king)) {
+                        if (i + (k+1) < 8 && j + (k+1) < 8 && rightBot) {
+                            if ((board.foundField(i + k, j + k).getState() == piece) || (board.foundField(i + k, j + k).getState() == king)) {
                                 if (board.foundField(i + (k+1), j + (k+1)).getState() == Field.State.empty) {
                                     capturingPieces.add(board.foundField(i + k, j + k));
                                     possibleCaptureMoves.add(board.foundField(i + (k+1), j + (k+1)));
                                     kingWithCapture = true;
                                 }
+                            }else if(board.foundField(i + k, j + k).getState() == alliedPiece || board.foundField(i + k, j + k).getState() == capturingKing){
+                                rightBot = false;
                             }
                         }
                     }
